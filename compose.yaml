@@ -4,6 +4,8 @@ services:
             context: .
             dockerfile: Containerfile
 
+        container_name: recipehub
+
         ports:
             - "7001:5000"
 
