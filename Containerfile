@@ -13,7 +13,7 @@ COPY lidl.py .
 COPY penny.py .
 COPY run.sh .
 
-RUN chmod +x start.sh
+RUN chmod +x run.sh
 
 EXPOSE 5000
 
