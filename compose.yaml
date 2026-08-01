@@ -4,7 +4,7 @@ services:
             context: .
             dockerfile: Containerfile
 
-        container_name: recipehub
+        container_name: discount-finder
 
         ports:
             - "7001:5000"
