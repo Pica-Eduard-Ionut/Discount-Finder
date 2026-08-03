@@ -2,10 +2,27 @@ import json
 import sqlite3
 import requests
 from bs4 import BeautifulSoup
+from urllib.parse import urljoin
 
-URL = "https://www.lidl.ro/c/ofertele-saptamanale-lidl-plus/a10099644"
+BASE_URL = "https://www.lidl.ro"
 
 headers = { "User-Agent": "Mozilla/5.0" }
+
+def get_weekly_offers_url():
+    html = requests.get(BASE_URL, headers=headers).text
+    soup = BeautifulSoup(html, "html.parser")
+    tiles = soup.select("a.ABaseContentTile__content")
+
+    for tile in tiles:
+        title = tile.select_one(".ABaseContentTile__title")
+        if title and "Lidl Plus" in title.get_text(strip=True):
+            return urljoin(BASE_URL, tile["href"])
+
+    raise Exception("Could not find Lidl Plus weekly offers URL")
+
+# Automatically find current weekly offers URL
+URL = get_weekly_offers_url()
+print(f"Using URL: {URL}")
 
 # SQLite setup
 conn = sqlite3.connect("lidl_products.db")
@@ -43,8 +60,10 @@ for product in products:
         price = None
         old_price = None
         currency = "Lei"
+
         # Price extraction
         region = data.get("regionsPrices", {}).get("1", {})
+
         if "currentLidlPlusPrice" in region:
             info = region["currentLidlPlusPrice"]["price"]
             price = info.get("price")
@@ -72,7 +91,7 @@ for product in products:
                 price = info
 
         product_url = ("https://www.lidl.ro" + data.get("canonicalUrl", ""))
-        # Save to SQLite
+
         cursor.execute("""
         INSERT INTO products
         (
@@ -104,13 +123,14 @@ for product in products:
             image,
             product_url
         ))
+
         conn.commit()
         print(f"Saved: {title}")
 
     except Exception as e:
         print("\nERROR:")
         print(e)
-        # show which product caused it
+
         try:
             print("Product:", data.get("title"))
         except:
