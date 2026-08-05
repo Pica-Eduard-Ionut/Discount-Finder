@@ -1,11 +1,19 @@
 import requests
 import sqlite3
+from datetime import date, timedelta
 
 BASE_URL = "https://www.penny.ro"
 
+today = date.today()
+# Monday=0, Tuesday=1, Wednesday=2
+if today.weekday() < 2:
+    week = (today - timedelta(days=7)).isocalendar().week
+else:
+    week = today.isocalendar().week
+
 API_URL = (
     "https://www.penny.ro/api/product-discovery/categories/"
-    "oferte-site-kw31-oferte-penny-card/products"
+    f"oferte-site-kw{week}-oferte-penny-card/products"
 )
 
 headers = {
@@ -13,7 +21,6 @@ headers = {
     "Accept": "application/json",
     "Referer": "https://www.penny.ro/oferte-card"
 }
-
 
 # SQLite setup
 conn = sqlite3.connect("penny_products.db")
